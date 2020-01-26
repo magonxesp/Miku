@@ -1,22 +1,28 @@
-import pygame
-import miku
-import miku.sprite
+# import pygame
+# import miku
+# import miku.sprite
 import sys
+from PySide2.QtWidgets import QMainWindow, QApplication
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QPaintEvent, QPainter
 
 
-pygame.init()
-screen = pygame.display.set_mode((miku.WINDOW_WIDTH, miku.WINDOW_HEIGHT), pygame.HWSURFACE)
-pygame.display.set_caption("Miku")
-clock = pygame.time.Clock()
+app = QApplication(sys.argv)
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit(0)
 
-    miku.sprite.sprite_group.update()
-    miku.sprite.sprite_group.draw(screen)
-    pygame.display.update()
-    screen.fill((0, 0, 0))
-    clock.tick(30)
+class MainWindow(QMainWindow):
 
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
+    def paintEvent(self, event: QPaintEvent):
+        renderer = QPainter()
+        # TODO: render group
+
+
+if __name__ == "__main__":
+    window = MainWindow()
+    window.showFullScreen()
+    sys.exit(app.exec_())

@@ -8,7 +8,10 @@ class ImageSpriteAnimation:
 
     def __init__(self):
         self.index = 0
-        self.images = []
+        self.images = {
+            'right': [],
+            'left': []
+        }
         self.speed = 1
         self.direction = 'right'
         self.loop_effect = False
@@ -55,18 +58,31 @@ class ImageSpriteAnimation:
             if self.index >= images_len:
                 self.index = 0
 
-    def play(self):
+    def play(self, *args, **kwargs):
         current_image = int(self.index)
         self._update_index()
-        return self.images[current_image]
+        return self.images[self.direction][current_image]
 
     def stop(self):
         self.index = 0
-        return self.images[0]
+        return self.images[self.direction][0]
 
 
 class MikuIdleAnimation(ImageSpriteAnimation):
 
     def __init__(self):
         super().__init__()
-        self.images = self.get_images_list('assets/miku/idle_right')
+        self.images['right'] = self.get_images_list('assets/miku/idle_right')
+        self.images['left'] = self.get_images_list('assets/miku/idle_left')
+
+
+class MikuRunAnimation(ImageSpriteAnimation):
+
+    def __init__(self):
+        super().__init__()
+        self.images['right'] = self.get_images_list('assets/miku/run_right')
+        self.images['left'] = self.get_images_list('assets/miku/run_left')
+        self.stop_image = {
+            'right': self.images['right'].pop(),
+            'left': self.images['left'].pop()
+        }

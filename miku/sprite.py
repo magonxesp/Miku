@@ -96,6 +96,10 @@ class MikuSprite(Sprite):
 
         self.load_pixmaps()
         self.set_status('idle', True)
+        # set sprite position on current mouse position
+        mouse = QCursor.pos()
+        self.position.setX(mouse.x())
+        self.position.setY(mouse.y())
 
     def load_pixmaps(self):
         for animation in self.animations:

@@ -1,28 +1,33 @@
-from PySide2.QtWidgets import QGraphicsItem
+from PySide2.QtWidgets import QGraphicsPixmapItem, QStyleOptionGraphicsItem, QWidget, QGraphicsSceneMouseEvent
 from PySide2.QtGui import QPixmap, QPainter
-from PySide2.QtCore import QPoint, QRect
+from PySide2.QtCore import QPointF, QRectF, QSizeF
 import os
 
 
-class Sprite(QGraphicsItem):
+class Sprite(QGraphicsPixmapItem):
 
-    _image: QPixmap
-    _current_frame: int = 0
+    _current_frame: float = 0
     _frames: int
-    position: QPoint
+    position: QPointF
 
-    def __init__(self, sprite_image_path: str, frames: int):
+    def __init__(self, sprite_image_path: str = "", frames: int = 0):
         super().__init__()
-        path = os.path.join(os.path.dirname(__file__), sprite_image_path)
-        self._image = QPixmap()
-        self._image.load(path)
-        self._frames = frames
-        self.position = QPoint()
+        self.position = QPointF()
         self.position.setX(0)
         self.position.setY(0)
 
+        if sprite_image_path != "" and frames != 0:
+            self.load(sprite_image_path, frames)
+
+    def load(self, sprite_image_path: str, frames: int):
+        path = os.path.join(os.path.dirname(__file__), sprite_image_path)
+        image = QPixmap()
+        image.load(path)
+        self.setPixmap(image)
+        self._frames = frames
+
     def next_frame(self):
-        total_width = self._image.width()
+        total_width = self.pixmap().width()
         frame_width = total_width / self._frames
         self._current_frame += frame_width
 
@@ -30,7 +35,7 @@ class Sprite(QGraphicsItem):
             self._current_frame = 0
 
     def prev_frame(self):
-        total_width = self._image.width()
+        total_width = self.pixmap().width()
         frame_width = total_width / self._frames
         self._current_frame -= frame_width
 
@@ -40,49 +45,28 @@ class Sprite(QGraphicsItem):
     def reset(self):
         self._current_frame = 0
 
-    def render(self, renderer: QPainter):
-        rect = QRect()
-        rect.setX(self._current_frame)
-        rect.setY(0)
-        rect.setWidth(self._image.width() / self._frames)
-        rect.setHeight(self._image.height())
-        renderer.drawPixmap(self.position, self._image, rect)
+    def boundingRect(self) -> QRectF:
+        return QRectF(self.position, QSizeF(float(self.pixmap().width() / self._frames), float(self.pixmap().height())))
 
-    # def paint(self, painter:PySide2.QtGui.QPainter, option:PySide2.QtWidgets.QStyleOptionGraphicsItem, widget:typing.Optional[PySide2.QtWidgets.QWidget]=...):
+    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
+        self.tick()
+        self.next_frame()
+        frame_width = float(self.pixmap().width() / self._frames)
+        rect = QRectF(self._current_frame, 0.0, frame_width, float(self.pixmap().height()))
+        painter.drawPixmap(self.position, self.pixmap(), rect)
 
-
-class DirectionalSprite:
-
-    _right: Sprite
-    _left: Sprite
-    _current_direction: str
-    current_sprite: Sprite
-
-    def __init__(self):
+    # Sprite update
+    def tick(self):
         pass
 
-    def set_sprite(self, direction: str, sprite: Sprite):
-        if direction == 'right':
-            self._right = sprite
-        elif direction == 'left':
-            self._left = sprite
 
-        self.current_sprite = sprite
-        self._current_direction = direction
+class MikuSprite(Sprite):
 
-    def set_direction(self, direction: str):
-        if self._current_direction == 'right':
-            self._right = self.current_sprite
-        elif self._current_direction == 'left':
-            self._left = self.current_sprite
-
-        if direction == 'right':
-            self.current_sprite = self._right
-        elif direction == 'left':
-            self.current_sprite = self._left
-
-        self._current_direction = direction
-        self.current_sprite.reset()
-
-    def render(self, renderer: QPainter):
-        self.current_sprite.render(renderer)
+    def __init__(self):
+        super().__init__()
+        self.animations = {
+            'run': {
+                'frames': 8,
+                'pixmap': None
+            }
+        }

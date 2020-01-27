@@ -1,37 +1,69 @@
-# import pygame
-# import miku
-# import miku.sprite
 import sys
-from PySide2.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView, QOpenGLWidget
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QPaintEvent, QPainter, QOpenGLWindow
+from PySide2.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView
+from PySide2.QtCore import Qt, QEvent, QObject, QThread
+from PySide2.QtGui import QMouseEvent
 from miku.objects import Miku
 
 
-app = QApplication(sys.argv)
+class SceneUpdateThread(QThread):
+
+    def __init__(self, _scene: QGraphicsScene):
+        super().__init__()
+        self.scene = _scene
+
+    def run(self):
+        while True:
+            self.scene.update()
+            self.msleep(int(1000 / 10))
 
 
-class MainWindow(QMainWindow):
+class MyScene(QGraphicsScene):
+
+    _update_thread: QThread
 
     def __init__(self):
-        super(MainWindow, self).__init__()
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowFlags(Qt.FramelessWindowHint)
-        self.miku = Miku()
+        super().__init__()
+        self.update_task = SceneUpdateThread(self)
+        self.installEventFilter(self)
 
-    def paintEvent(self, event: QPaintEvent):
-        renderer = QPainter(self)
-        self.miku.update()
-        self.miku.render(renderer)
+
+class GraphicsView(QGraphicsView):
+
+    def __init__(self):
+        super().__init__()
+        self.setMouseTracking(True)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.MouseMove:
+            print("mouse move!")
+
+        return super().eventFilter(watched, event)
+
+    def mouseMoveEvent(self, event: QMouseEvent):
+        # print("Mouse move event!", event.x(), event.y())
+        # print("Scene", self.scene().height(), self.scene().width())
+        pass
 
 
 if __name__ == "__main__":
-    window = MainWindow()
-    scene = QGraphicsScene(window)
+    app = QApplication(sys.argv)
 
-    scene.
+    scene = MyScene()
+    miku = Miku()
 
-    view = QGraphicsView(scene)
+    scene.addItem(miku.sprite_idle_right)
+
+    view = GraphicsView()
+    # background transparent
+    view.setAttribute(Qt.WA_TranslucentBackground, True)
+    view.setAttribute(Qt.WA_NoSystemBackground, True)
+    view.setStyleSheet("background: transparent; border: none;")
+    # click through window
+    view.setWindowFlags(Qt.FramelessWindowHint | Qt.X11BypassWindowManagerHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+    view.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
+    view.setScene(scene)
     view.showFullScreen()
-    #window.showFullScreen()
+
+    scene.update_task.start()
+
     sys.exit(app.exec_())

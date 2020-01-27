@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QGraphicsPixmapItem, QStyleOptionGraphicsItem, QWidget
 from PySide2.QtGui import QPixmap, QPainter, QCursor
-from PySide2.QtCore import QPointF, QRectF, QSizeF
+from PySide2.QtCore import QPointF, QRectF, QSizeF, QPoint
 import os
 
 
@@ -62,16 +62,102 @@ class Sprite(QGraphicsPixmapItem):
 
 class MikuSprite(Sprite):
 
+    animations: dict
+
     def __init__(self):
         super().__init__()
+        self.speed = 7
+        self.direction = 'right'
+        self.status = 'idle'
         self.animations = {
             'run': {
                 'frames': 8,
-                'pixmap': None
+                'right': {
+                    'image_path': 'assets/miku/run_right.png',
+                    'pixmap': None
+                },
+                'left': {
+                    'image_path': 'assets/miku/run_left.png',
+                    'pixmap': None
+                }
+            },
+            'idle': {
+                'frames': 10,
+                'right': {
+                    'image_path': 'assets/miku/idle_right.png',
+                    'pixmap': None
+                },
+                'left': {
+                    'image_path': 'assets/miku/idle_left.png',
+                    'pixmap': None
+                }
             }
         }
+
+        self.load_pixmaps()
+        self.set_status('idle', True)
+
+    def load_pixmaps(self):
+        for animation in self.animations:
+            for key in self.animations[animation]:
+                if key != 'frames':
+                    path = os.path.join(os.path.dirname(__file__), self.animations[animation][key]['image_path'])
+                    pixmap = QPixmap()
+                    pixmap.load(path)
+                    self.animations[animation][key]['pixmap'] = pixmap
+
+    def set_status(self, status, force=False):
+        if self.status != status or force:
+            self.status = status
+            self.set_sprite_pixmap(self.status, self.direction)
+
+    def set_direction(self, direction, force=False):
+        if self.direction != direction or force:
+            self.direction = direction
+            self.set_sprite_pixmap(self.status, self.direction)
+
+    def set_sprite_pixmap(self, animation: str, direction: str):
+        pixmap = self.animations[animation][direction]['pixmap']
+        self._frames = self.animations[animation]['frames']
+        self.setPixmap(pixmap)
+        self.reset()
+
+    def is_mouse_reached(self, mouse: QPoint):
+        x = self.position.x()
+        y = self.position.y()
+        image_x = self.position.x() + (self.pixmap().width() / self._frames)
+        image_y = self.position.y() + (self.pixmap().height() / self._frames)
+
+        if (mouse.x() >= x and mouse.x() <= image_x) and (mouse.y() >= y and mouse.y() <= image_y):
+            return True
+
+        return False
+
+    def follow_mouse(self, mouse: QPoint):
+        x = self.position.x()
+        y = self.position.y()
+
+        if mouse.x() > x:
+            x += self.speed
+            self.set_direction('right')
+        elif mouse.x() < x:
+            x -= self.speed
+            self.set_direction('left')
+
+        if mouse.y() > y:
+            y += self.speed
+        elif mouse.y() < y:
+            y -= self.speed
+
+        self.position.setX(x)
+        self.position.setY(y)
 
     def tick(self):
         # get the current mouse position on screen
         mouse = QCursor.pos()
-        print(mouse.x(), mouse.y())
+
+        if self.is_mouse_reached(mouse) is False:
+            self.follow_mouse(mouse)
+            self.set_status('run')
+        else:
+            self.set_status('idle')

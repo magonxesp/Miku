@@ -43,7 +43,6 @@ if __name__ == "__main__":
     scene = MyScene()
     # Sprite
     miku = MikuSprite()
-    miku.load('assets/miku/idle_right.png', 10)
 
     scene.addItem(miku)
 

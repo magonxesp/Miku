@@ -1,28 +1,7 @@
-from miku.animation import MikuIdleAnimation, MikuRunAnimation
 from PySide2.QtWidgets import QGraphicsItem
 from PySide2.QtGui import QPixmap, QPainter
-from PySide2.QtCore import QPoint
+from PySide2.QtCore import QPoint, QRect
 import os
-from typing import List
-
-
-class FrameList:
-
-    def __init__(self, images: List[QPixmap]):
-        self.frames = images
-        self.index = 0
-
-    def __len__(self):
-        return len(self.frames)
-
-    def next(self, offset=1, speed=1):
-        if self.index < images_len:
-            self.index += (offset * speed)
-
-        if self.index >= images_len:
-            self.index = 0
-
-        return self.frames[int(self.index)]
 
 
 class Sprite(QGraphicsItem):
@@ -39,6 +18,8 @@ class Sprite(QGraphicsItem):
         self._image.load(path)
         self._frames = frames
         self.position = QPoint()
+        self.position.setX(0)
+        self.position.setY(0)
 
     def next_frame(self):
         total_width = self._image.width()
@@ -48,11 +29,26 @@ class Sprite(QGraphicsItem):
         if self._current_frame >= total_width:
             self._current_frame = 0
 
+    def prev_frame(self):
+        total_width = self._image.width()
+        frame_width = total_width / self._frames
+        self._current_frame -= frame_width
+
+        if self._current_frame <= 0:
+            self._current_frame = frame_width
+
     def reset(self):
         self._current_frame = 0
 
     def render(self, renderer: QPainter):
-        renderer.drawPixmap(self.position, self._image, self._current_frame, 0, self._image.width(), self._image.height())
+        rect = QRect()
+        rect.setX(self._current_frame)
+        rect.setY(0)
+        rect.setWidth(self._image.width() / self._frames)
+        rect.setHeight(self._image.height())
+        renderer.drawPixmap(self.position, self._image, rect)
+
+    # def paint(self, painter:PySide2.QtGui.QPainter, option:PySide2.QtWidgets.QStyleOptionGraphicsItem, widget:typing.Optional[PySide2.QtWidgets.QWidget]=...):
 
 
 class DirectionalSprite:
@@ -89,4 +85,4 @@ class DirectionalSprite:
         self.current_sprite.reset()
 
     def render(self, renderer: QPainter):
-        self._current_sprite.render(renderer)
+        self.current_sprite.render(renderer)

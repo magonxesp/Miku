@@ -1,8 +1,8 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView
-from PySide2.QtCore import Qt, QEvent, QObject, QThread
-from PySide2.QtGui import QMouseEvent
-from miku.objects import Miku
+from PySide2.QtWidgets import QApplication, QGraphicsScene, QGraphicsView
+from PySide2.QtCore import Qt, QThread
+from PySide2.QtGui import QShowEvent
+from miku.sprite import MikuSprite
 
 
 class SceneUpdateThread(QThread):
@@ -33,25 +33,19 @@ class GraphicsView(QGraphicsView):
         super().__init__()
         self.setMouseTracking(True)
 
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if event.type() == QEvent.MouseMove:
-            print("mouse move!")
-
-        return super().eventFilter(watched, event)
-
-    def mouseMoveEvent(self, event: QMouseEvent):
-        # print("Mouse move event!", event.x(), event.y())
-        # print("Scene", self.scene().height(), self.scene().width())
-        pass
+    def showEvent(self, event: QShowEvent):
+        self.setSceneRect(self.rect())
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     scene = MyScene()
-    miku = Miku()
+    # Sprite
+    miku = MikuSprite()
+    miku.load('assets/miku/idle_right.png', 10)
 
-    scene.addItem(miku.sprite_idle_right)
+    scene.addItem(miku)
 
     view = GraphicsView()
     # background transparent

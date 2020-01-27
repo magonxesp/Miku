@@ -1,5 +1,5 @@
-from PySide2.QtWidgets import QGraphicsPixmapItem, QStyleOptionGraphicsItem, QWidget, QGraphicsSceneMouseEvent
-from PySide2.QtGui import QPixmap, QPainter
+from PySide2.QtWidgets import QGraphicsPixmapItem, QStyleOptionGraphicsItem, QWidget
+from PySide2.QtGui import QPixmap, QPainter, QCursor
 from PySide2.QtCore import QPointF, QRectF, QSizeF
 import os
 
@@ -70,3 +70,8 @@ class MikuSprite(Sprite):
                 'pixmap': None
             }
         }
+
+    def tick(self):
+        # get the current mouse position on screen
+        mouse = QCursor.pos()
+        print(mouse.x(), mouse.y())

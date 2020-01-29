@@ -3,6 +3,7 @@ from PySide2.QtWidgets import QApplication, QGraphicsScene, QGraphicsView
 from PySide2.QtCore import Qt, QThread
 from PySide2.QtGui import QShowEvent
 from miku.sprite import MikuSprite
+import miku
 
 
 class SceneUpdateThread(QThread):
@@ -42,9 +43,9 @@ if __name__ == "__main__":
 
     scene = MyScene()
     # Sprite
-    miku = MikuSprite()
+    _miku = MikuSprite()
 
-    scene.addItem(miku)
+    scene.addItem(_miku)
 
     view = GraphicsView()
     # background transparent
@@ -55,7 +56,13 @@ if __name__ == "__main__":
     view.setWindowFlags(Qt.FramelessWindowHint | Qt.X11BypassWindowManagerHint | Qt.WindowStaysOnTopHint | Qt.Tool)
     view.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
     view.setScene(scene)
-    view.showFullScreen()
+
+    if sys.platform == miku.PLATFORM_MACOS:
+        screen = app.primaryScreen()
+        view.resize(screen.size().width(), screen.size().height())
+        view.show()
+    else:
+        view.showFullScreen()
 
     scene.update_task.start()
 

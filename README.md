@@ -6,13 +6,13 @@ Require Python >= 3.7
 Compatible and tested in Windows 10 and macOS Catalina.
 
 # Usage
-1. Install python 3.7 or later. https://www.python.org/downloads/
+* Install python 3.7 or later. https://www.python.org/downloads/
 
-2. Clone this repository
+* Clone this repository
  ```sh
  git clone https://github.com/MagonxESP/Miku.git
  ```
+ 
+* On windows run ```miku.bat```, on macOS/Linux run ```miku.sh```.
 
-3. On windows run ```miku.bat```, on macOS/Linux run ```miku.sh```.
-
-4. Enjoy :D
+* Enjoy :D
